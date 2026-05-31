@@ -14,6 +14,7 @@ const app = express();
 
 // Allow requests from the frontend (Render static site + local dev)
 const ALLOWED_ORIGINS = [
+  "https://omkar-l5r9.onrender.com",
   "https://omkar-frontend.onrender.com",
   "http://localhost:4200",
   "http://localhost:3000",

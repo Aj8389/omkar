@@ -58,8 +58,8 @@ export class LeftPanelComponent {
     this.ws.onAuthError = (msg: string) => {
       const errorText = msg?.includes('Account is disabled')
         ? 'Account disabled. Verify your Deriv account status.'
-        : msg?.includes('invalid') || msg?.includes('InvalidToken') || msg?.includes('sanity')
-          ? 'Invalid OAuth token. Token must start with ory_at_'
+        : msg?.includes('invalid') || msg?.includes('InvalidToken') || msg?.includes('sanity') || msg?.includes('ory_at_')
+          ? 'Invalid token. Paste your full ory_at_... OAuth token from Deriv.'
           : msg || 'Deriv authorization failed.';
       this.tokenError.set(errorText);
     };

@@ -70,11 +70,12 @@ function formatEnv(env) {
 
 // Accepts Deriv OAuth 2.0 PKCE tokens (ory_at_...) and legacy API tokens
 function isValidToken(t) {
-  if (typeof t !== 'string' || !t) return false;
-  // New OAuth 2.0 PKCE tokens issued by Ory (ory_at_<base64url>.<base64url>)
-  if (/^ory_at_[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(t)) return true;
+  if (typeof t !== 'string' || !t.trim()) return false;
+  const tok = t.trim();
+  // New OAuth 2.0 PKCE tokens — starts with ory_at_ and has printable chars (no whitespace)
+  if (tok.startsWith('ory_at_') && tok.length > 20 && !/\s/.test(tok)) return true;
   // Legacy Deriv API tokens (alphanumeric, 15–64 chars)
-  return /^[A-Za-z0-9_-]{15,64}$/.test(t);
+  return /^[A-Za-z0-9_-]{15,64}$/.test(tok);
 }
 
 function loadConfig() {
@@ -539,6 +540,7 @@ async function reconnectDeriv() {
 }
 
 async function connectDeriv(token) {
+  token = (token || '').trim();
   if (!isValidToken(token)) {
     log("Invalid or missing OAuth token — enter your ory_at_... token in the UI", "err");
     broadcast({ type: "CONN_STATUS", status: "error", label: "NO TOKEN — enter OAuth token" });

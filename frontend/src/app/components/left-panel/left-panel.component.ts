@@ -18,6 +18,7 @@ export class LeftPanelComponent {
   tokenSaved = signal(!!this.token.load());
   tokenMsg = signal(this.token.load() ? '✓ Token saved — auto-connecting...' : '');
   tokenError = signal('');
+  accountType = signal<'demo' | 'real'>('real');
 
   symbol = signal('R_100');
   contractType = signal('AUTO');
@@ -56,8 +57,10 @@ export class LeftPanelComponent {
   ) {
     this.ws.onAuthError = (msg: string) => {
       const errorText = msg?.includes('Account is disabled')
-        ? 'Account disabled. Verify your Deriv API token and account status.'
-        : msg || 'Deriv authorization failed.';
+        ? 'Account disabled. Verify your Deriv account status.'
+        : msg?.includes('invalid') || msg?.includes('InvalidToken') || msg?.includes('sanity')
+          ? 'Invalid OAuth token. Token must start with ory_at_'
+          : msg || 'Deriv authorization failed.';
       this.tokenError.set(errorText);
     };
 
@@ -91,7 +94,7 @@ export class LeftPanelComponent {
     this.tokenMsg.set('✓ Connecting...');
     this.state.connStatus.set('connecting');
     this.state.connLabel.set('CONNECTING...');
-    this.ws.send({ type: 'CONNECT', token: tok });
+    this.ws.send({ type: 'CONNECT', token: tok, accountType: this.accountType() });
     this.log.add('Sending auth request to backend...', 'info');
   }
 

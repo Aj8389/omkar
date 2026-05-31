@@ -5,20 +5,27 @@
 
     <!-- Connection -->
     <div class="psec">
-      <div class="ptitle">Deriv API Connection</div>
+      <div class="ptitle">Deriv OAuth Connection</div>
       <div class="field">
-        <label>API Token</label>
+        <label>OAuth Access Token</label>
         <div class="irow">
           <input type="password" [ngModel]="apiToken()" (ngModelChange)="apiToken.set($event)"
-                 placeholder="Paste Deriv API token..." autocomplete="off"/>
+                 placeholder="Paste OAuth token (ory_at_...)" autocomplete="off"/>
           <button class="ibtn green" (click)="doConnect()">CONNECT</button>
           <button class="ibtn outline" (click)="clearToken()" title="Clear token" style="padding:7px 10px;">✕</button>
         </div>
         <div class="tok-saved" [class.hidden]="!tokenSaved()">{{ tokenMsg() }}</div>
         <div class="tok-error" [class.hidden]="!tokenError()">{{ tokenError() }}</div>
       </div>
+      <div class="field mt">
+        <label>Account Type</label>
+        <div class="acct-toggle">
+          <button class="atbtn" [class.active]="accountType() === 'demo'" (click)="accountType.set('demo')">DEMO</button>
+          <button class="atbtn real" [class.active]="accountType() === 'real'" (click)="accountType.set('real')">REAL</button>
+        </div>
+      </div>
       <div class="api-hint">
-        <b>GET TOKEN:</b> app.deriv.com → API Token → Read + Trade
+        <b>GET TOKEN:</b> OAuth 2.0 PKCE flow → token starts with <b>ory_at_</b>
       </div>
     </div>
 

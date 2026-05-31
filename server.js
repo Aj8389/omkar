@@ -917,7 +917,7 @@ function placeTrade(contractType, direction) {
   sendDeriv({
     proposal: 1,
     contract_type: contractType,
-    symbol: state.symbol,
+    underlying: state.symbol,
     duration: state.duration,
     duration_unit: state.durationUnit,
     basis: "stake",

@@ -32,7 +32,8 @@ export class LeftPanelComponent {
   martMultiplier = signal(2.0);
   martMaxSteps = signal(3);
   autoBuy = signal(true);
-  autoExit = signal(true);
+  autoExit = signal(false);
+  autoExitProfitPct = signal(30);
   pauseOnLoss = signal(true);
   selectedStrategy = signal('SMART');
 
@@ -142,6 +143,8 @@ export class LeftPanelComponent {
         duration: dur,
         durationUnit: unit,
         pauseOn3Losses: this.pauseOnLoss(),
+        autoExitOnProfit: this.autoExit(),
+        autoExitProfitPct: this.autoExitProfitPct(),
       }
     });
   }

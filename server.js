@@ -193,6 +193,9 @@ let state = {
   paused: false,
   pauseTimer: null,
 
+  autoExitOnProfit: false,
+  autoExitProfitPct: 30,   // exit when profit >= 30% of stake
+
   todayWins: 0,
   todayLosses: 0,
   todayPnl: 0,
@@ -745,6 +748,16 @@ function handleDerivMessage(data) {
       clearTimeout(state.tradeTimeout);
       state.tradeTimeout = null;
       handleContractClose(poc);
+      return;
+    }
+
+    // Auto exit early when profit threshold is reached
+    if (!settled && state.autoExitOnProfit && state.activeTrade && poc.profit !== undefined) {
+      const profitPct = (parseFloat(poc.profit) / state.stake) * 100;
+      if (profitPct >= state.autoExitProfitPct) {
+        log(`Auto exit: +${profitPct.toFixed(1)}% profit — locking in gains`, "ok");
+        sendDeriv({ sell: state.activeContractId, price: 0, req_id: nextId() });
+      }
     }
     return;
   }
@@ -932,6 +945,8 @@ function applySettings(s) {
   if (s.duration !== undefined) state.duration = parseInt(s.duration);
   if (s.durationUnit !== undefined) state.durationUnit = s.durationUnit;
   if (s.pauseOn3Losses !== undefined) state.pauseOn3Losses = s.pauseOn3Losses;
+  if (s.autoExitOnProfit !== undefined) state.autoExitOnProfit = s.autoExitOnProfit;
+  if (s.autoExitProfitPct !== undefined) state.autoExitProfitPct = parseFloat(s.autoExitProfitPct);
   saveSettings();
 }
 

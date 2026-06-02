@@ -174,8 +174,17 @@
         <div class="sw" [class.on]="autoBuy()" (click)="autoBuy.set(!autoBuy())"></div>
       </div>
       <div class="trow">
-        <div class="tlabel">Auto Exit SL/TP</div>
+        <div>
+          <div class="tlabel">Auto Exit on Profit</div>
+          <div class="tsub">Sell early when contract is profitable</div>
+        </div>
         <div class="sw" [class.on]="autoExit()" (click)="autoExit.set(!autoExit())"></div>
+      </div>
+      <div class="slider-row" *ngIf="autoExit()">
+        <div class="slider-label">Exit at Profit %<span class="slider-val">{{ autoExitProfitPct() }}%</span></div>
+        <input type="range" min="10" max="80" step="5"
+               [value]="autoExitProfitPct()"
+               (input)="autoExitProfitPct.set(+$any($event.target).value)" />
       </div>
       <div class="trow">
         <div>

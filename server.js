@@ -352,16 +352,8 @@ function analyzeSignal() {
       signal = "SELL";
       reason = `SMART SELL ${bearScore}/4: EMA${emaBear?"↓":"↑"} RSI${rsi} Mom${downTicks}/5 MACD${macdBear?"↓":"↑"}`;
       strength = 50 + bearScore * 12;
-    } else if (bullScore === 2 && bullScore > bearScore) {
-      signal = "BUY";
-      reason = `SMART BUY 2/4: RSI${rsi} EMA${emaBull?"Bull":"Bear"} Mom${upTicks}/5`;
-      strength = 52;
-    } else if (bearScore === 2 && bearScore > bullScore) {
-      signal = "SELL";
-      reason = `SMART SELL 2/4: RSI${rsi} EMA${emaBear?"Bear":"Bull"} Mom${downTicks}/5`;
-      strength = 52;
     } else {
-      reason = `SMART: Signals tied (Bull:${bullScore} Bear:${bearScore} RSI:${rsi})`;
+      reason = `SMART: Weak signal (Bull:${bullScore} Bear:${bearScore} RSI:${rsi})`;
       strength = 20;
     }
   } else if (state.strategy === "RSI_EMA") {
@@ -373,16 +365,8 @@ function analyzeSignal() {
       signal = "SELL";
       reason = `RSI high (${rsi}) + bearish EMA`;
       strength = Math.round(60 + (rsi - 60) * 1.5);
-    } else if (rsi < 45 && ema9 > ema21) {
-      signal = "BUY";
-      reason = `RSI leaning low (${rsi}) + bullish EMA`;
-      strength = 52;
-    } else if (rsi > 55 && ema9 < ema21) {
-      signal = "SELL";
-      reason = `RSI leaning high (${rsi}) + bearish EMA`;
-      strength = 52;
     } else {
-      reason = `RSI: ${rsi} | EMA: ${ema9 > ema21 ? "Bull" : "Bear"}`;
+      reason = `RSI: ${rsi} | EMA: ${ema9 > ema21 ? "Bull" : "Bear"} — weak, skipping`;
       strength = 20;
     }
   } else if (state.strategy === "BOLLINGER" && boll) {
@@ -394,14 +378,9 @@ function analyzeSignal() {
       signal = "SELL";
       reason = `Price above upper band (${boll.upper.toFixed(2)})`;
       strength = Math.round(65 + Math.min(30, ((price - boll.upper) / boll.upper) * 1000));
-    } else if (price <= boll.middle) {
-      signal = "BUY";
-      reason = `Price below mid-band — bounce expected`;
-      strength = 53;
     } else {
-      signal = "SELL";
-      reason = `Price above mid-band — pullback expected`;
-      strength = 53;
+      reason = `Price inside bands — weak, skipping`;
+      strength = 20;
     }
   } else if (state.strategy === "MACD") {
     const prevMacd = calcMACD(prices.slice(0, -1));
@@ -413,32 +392,24 @@ function analyzeSignal() {
       signal = "SELL";
       reason = `MACD bearish crossover (${macd.toFixed(4)})`;
       strength = Math.round(70 + Math.min(25, Math.abs(macd) * 5000));
-    } else if (macd > 0) {
-      signal = "BUY";
-      reason = `MACD bullish trend (${macd.toFixed(4)})`;
-      strength = 52;
-    } else if (macd < 0) {
-      signal = "SELL";
-      reason = `MACD bearish trend (${macd.toFixed(4)})`;
-      strength = 52;
     } else {
-      reason = `MACD flat`;
+      reason = `MACD: no crossover (${macd.toFixed(4)}) — weak, skipping`;
       strength = 20;
     }
   } else if (state.strategy === "SCALPER") {
     if (prices.length >= 5) {
       const recent = prices.slice(-5);
       const up = recent.filter((p, i) => i > 0 && p > recent[i - 1]).length;
-      if (up >= 3) {
+      if (up === 4) {
         signal = "SELL";
-        reason = `Scalper: ${up}/4 up ticks → reversal`;
-        strength = 50 + up * 10;
-      } else if (up <= 1) {
+        reason = `Scalper: 4/4 up ticks → strong reversal`;
+        strength = 90;
+      } else if (up === 0) {
         signal = "BUY";
-        reason = `Scalper: ${4 - up}/4 down ticks → reversal`;
-        strength = 50 + (4 - up) * 10;
+        reason = `Scalper: 4/4 down ticks → strong reversal`;
+        strength = 90;
       } else {
-        reason = `Scalper: mixed ticks (${up}/4 up)`;
+        reason = `Scalper: mixed ticks (${up}/4 up) — weak, skipping`;
         strength = 20;
       }
     }
@@ -895,7 +866,7 @@ function runBotLogic() {
   broadcast({ type: "SIGNAL_UPDATE", analysis });
   state.lastSignalTime = now;
 
-  if (analysis.signal === "WAIT" || analysis.strength < 50) return;
+  if (analysis.signal === "WAIT" || analysis.strength < 62) return;
 
   // Determine contract type
   let contractType = state.contractType;

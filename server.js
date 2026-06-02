@@ -1050,6 +1050,12 @@ wss.on("connection", (browserWs) => {
         emergencyStop();
         break;
 
+      case "EXIT_TRADE":
+        if (!state.activeContractId) { log("No active contract to exit", "warn"); break; }
+        log("Early exit — selling contract now", "warn");
+        sendDeriv({ sell: state.activeContractId, price: 0, req_id: nextId() });
+        break;
+
       case "CHANGE_SYMBOL":
         state.symbol = cmd.symbol;
         if (state.authorized) subscribeTicks(cmd.symbol);

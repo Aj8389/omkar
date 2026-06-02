@@ -53,6 +53,7 @@ export class BotStateService {
   lastPrice = signal(0);
   priceHistory = signal<number[]>([]);
   pnlHistory = signal<number[]>([0]);
+  liveEquity = signal<number[]>([0]);
 
   // Stats
   stats = signal<Stats>({ wins: 0, losses: 0, total: 0, pnl: 0, winRate: 0, bestStreak: 0, remaining: 10 });

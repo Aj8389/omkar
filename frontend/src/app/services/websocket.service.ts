@@ -147,6 +147,15 @@ export class WebsocketService implements OnDestroy {
       const next = [...h, msg.price];
       return next.length > 100 ? next.slice(-100) : next;
     });
+
+    // Live equity curve: closed P&L + unrealized P&L from active trade
+    const closedPnl = this.state.stats().pnl;
+    const unrealized = this.state.activeTradePnl() ?? 0;
+    const livePoint = parseFloat((closedPnl + unrealized).toFixed(2));
+    this.state.liveEquity.update(h => {
+      const next = [...h, livePoint];
+      return next.length > 300 ? next.slice(-300) : next;
+    });
   }
 
   private onTradeClosed(msg: any) {

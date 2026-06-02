@@ -40,7 +40,7 @@ export class CenterComponent implements OnInit, OnDestroy {
 
   constructor(public state: BotStateService) {
     effect(() => { this.updateMainChart(this.state.priceHistory()); });
-    effect(() => { this.updatePnlChart(this.state.pnlHistory()); });
+    effect(() => { this.updatePnlChart(this.state.liveEquity()); });
   }
 
   ngOnInit() {

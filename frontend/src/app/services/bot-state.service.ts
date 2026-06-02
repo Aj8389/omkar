@@ -62,6 +62,7 @@ export class BotStateService {
   trades = signal<Trade[]>([]);
   activeTrade = signal<Trade | null>(null);
   activeTradePnl = signal<number>(0);
+  contractCanSell = signal<boolean>(false);
 
   // Signal analysis
   signalAnalysis = signal<SignalAnalysis | null>(null);

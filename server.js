@@ -332,28 +332,28 @@ function analyzeSignal() {
     const downTicks = (recent.length - 1) - upTicks;
 
     const emaBull  = ema9 > ema21;
-    const rsiBull  = rsi < 50;
+    const rsiBull  = rsi < 45;   // meaningful oversold lean, not just below 50
     const momBull  = upTicks >= 3;
     const macdBull = macd >= 0;
 
     const emaBear  = !emaBull;
-    const rsiBear  = !rsiBull;
+    const rsiBear  = rsi > 55;   // meaningful overbought lean, not just above 50
     const momBear  = downTicks >= 3;
     const macdBear = macd < 0;
 
     const bullScore = (emaBull ? 1 : 0) + (rsiBull ? 1 : 0) + (momBull ? 1 : 0) + (macdBull ? 1 : 0);
     const bearScore = (emaBear ? 1 : 0) + (rsiBear ? 1 : 0) + (momBear ? 1 : 0) + (macdBear ? 1 : 0);
 
-    if (bullScore >= 3 && bullScore > bearScore) {
+    if (bullScore >= 3 && bullScore > bearScore && rsi < 65) {
       signal = "BUY";
       reason = `SMART BUY ${bullScore}/4: EMA${emaBull?"↑":"↓"} RSI${rsi} Mom${upTicks}/5 MACD${macdBull?"↑":"↓"}`;
       strength = 50 + bullScore * 12;
-    } else if (bearScore >= 3 && bearScore > bullScore) {
+    } else if (bearScore >= 3 && bearScore > bullScore && rsi > 35) {
       signal = "SELL";
       reason = `SMART SELL ${bearScore}/4: EMA${emaBear?"↓":"↑"} RSI${rsi} Mom${downTicks}/5 MACD${macdBear?"↓":"↑"}`;
       strength = 50 + bearScore * 12;
     } else {
-      reason = `SMART: Weak signal (Bull:${bullScore} Bear:${bearScore} RSI:${rsi})`;
+      reason = `SMART: Weak/risky signal (Bull:${bullScore} Bear:${bearScore} RSI:${rsi})`;
       strength = 20;
     }
   } else if (state.strategy === "RSI_EMA") {

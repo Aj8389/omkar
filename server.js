@@ -157,6 +157,7 @@ let state = {
   accountId: null,
   accountType: "real",
   pendingAuth: false,
+  connecting: false,
 
   token: null,
   authorized: false,
@@ -486,9 +487,12 @@ function openDerivWebSocket(wsUrl) {
   state.derivWs = ws;
 
   ws.on("open", () => {
+    if (state.derivWs !== ws) return; // stale — a newer connection took over
+
     log("Deriv WebSocket connected successfully", "ok");
     state.authorized = true;
     state.pendingAuth = true;
+    state.connecting = false;
 
     sendDeriv({ balance: 1, subscribe: 1, req_id: nextId() });
     subscribeTicks(state.symbol);
@@ -504,15 +508,18 @@ function openDerivWebSocket(wsUrl) {
   });
 
   ws.on("message", (raw) => {
+    if (state.derivWs !== ws) return; // stale
     let data;
     try { data = JSON.parse(raw.toString()); } catch (_) { return; }
     handleDerivMessage(data);
   });
 
   ws.on("close", (code) => {
+    if (state.derivWs !== ws) return; // stale
     log(`Deriv WebSocket closed (code ${code}) — reconnecting...`, "warn");
     state.authorized = false;
     state.pendingAuth = false;
+    state.connecting = false;
     state.derivWs = null;
     broadcast({ type: "CONN_STATUS", status: "disconnected", label: "RECONNECTING..." });
     if (state.token && state.accountId) {
@@ -521,6 +528,7 @@ function openDerivWebSocket(wsUrl) {
   });
 
   ws.on("error", (err) => {
+    if (state.derivWs !== ws) return; // stale
     console.error("Deriv WebSocket Error:", err);
     log(`Deriv WebSocket error: ${err.message}`, "err");
   });
@@ -549,7 +557,14 @@ async function connectDeriv(token) {
     return;
   }
 
+  // Prevent duplicate concurrent connections with the same token
+  if (state.connecting && state.token === token) {
+    log("Connection already in progress — skipping duplicate connect", "info");
+    return;
+  }
+
   state.token = token;
+  state.connecting = true;
   broadcast({ type: "CONN_STATUS", status: "connecting", label: "FETCHING ACCOUNTS..." });
 
   try {
@@ -593,6 +608,7 @@ async function connectDeriv(token) {
     broadcast({ type: "CONN_STATUS", status: "error", label: "Connection failed — check token" });
     broadcast({ type: "DERIV_ERROR", message: err.message });
     state.authorized = false;
+    state.connecting = false;
   }
 }
 
@@ -917,7 +933,7 @@ function placeTrade(contractType, direction) {
   sendDeriv({
     proposal: 1,
     contract_type: contractType,
-    underlying: state.symbol,
+    underlying_symbol: state.symbol,
     duration: state.duration,
     duration_unit: state.durationUnit,
     basis: "stake",

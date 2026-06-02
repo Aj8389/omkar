@@ -1072,9 +1072,7 @@ wss.on("connection", (browserWs) => {
 
       case "EXIT_TRADE":
         if (!state.activeContractId) { log("No active contract to exit", "warn"); break; }
-        if (!state.contractCanSell) { log("Contract cannot be sold early — resale not offered", "warn"); break; }
         log("Early exit — selling contract now", "warn");
-        state.contractCanSell = false;
         sendDeriv({ sell: state.activeContractId, price: 0, req_id: nextId() });
         break;
 

@@ -1,6 +1,7 @@
-import { Component, computed } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { BotStateService } from '../../services/bot-state.service';
+import { WebsocketService } from '../../services/websocket.service';
 
 @Component({
   selector: 'app-right-panel',
@@ -63,5 +64,7 @@ export class RightPanelComponent {
     return (p >= 0 ? '+' : '') + '$' + Math.abs(p).toFixed(2);
   }
 
-  constructor(public state: BotStateService) {}
+  constructor(public state: BotStateService, private ws: WebsocketService) {}
+
+  exitTrade() { this.ws.send({ type: 'EXIT_TRADE' }); }
 }

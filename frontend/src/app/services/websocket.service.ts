@@ -87,11 +87,12 @@ export class WebsocketService implements OnDestroy {
       case 'TICK':             this.onTick(msg); break;
       case 'SIGNAL_UPDATE':    this.state.signalAnalysis.set(msg.analysis as SignalAnalysis); break;
       case 'BOT_STATUS':       this.state.botRunning.set(msg.running); break;
-      case 'TRADE_OPENED':     this.state.activeTrade.set(msg.trade); this.log.add(`Trade opened: ${msg.trade.direction} | $${msg.trade.stake}`, 'ok'); break;
+      case 'TRADE_OPENED':     this.state.activeTrade.set(msg.trade); this.state.contractCanSell.set(false); this.log.add(`Trade opened: ${msg.trade.direction} | $${msg.trade.stake}`, 'ok'); break;
       case 'CONTRACT_UPDATE':
         if (msg.contract?.profit !== undefined) {
           this.state.activeTradePnl.set(parseFloat(msg.contract.profit));
         }
+        this.state.contractCanSell.set(msg.canSell === true);
         break;
       case 'TRADE_CLOSED':     this.onTradeClosed(msg); break;
       case 'EMERGENCY_STOP':   this.state.activeTrade.set(null); this.state.botRunning.set(false); this.onToast?.('Emergency stop executed!', 'err'); break;

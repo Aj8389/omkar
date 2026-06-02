@@ -62,7 +62,8 @@
         <div class="open-lbl">LIVE</div>
         <div class="tp-price"></div>
       </div>
-      <button class="exit-btn" (click)="exitTrade()">EXIT EARLY</button>
+      <button class="exit-btn" *ngIf="state.contractCanSell()" (click)="exitTrade()">EXIT EARLY</button>
+      <div class="no-sell-lbl" *ngIf="!state.contractCanSell()">Resale not available yet</div>
     </div>
   </div>
 

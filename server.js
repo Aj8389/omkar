@@ -220,6 +220,7 @@ let state = {
   pendingProposal: null,
   tradeTimeout: null,
   autoStartPending: false,
+  contractCanSell: false,
 };
 
 // ─────────────────────────────────────────────
@@ -697,6 +698,7 @@ function handleDerivMessage(data) {
 
     const contract = data.buy;
     state.activeContractId = contract.contract_id;
+    state.contractCanSell = false;
 
     // Use the actual buy price from Deriv as entry price
     const trade = {
@@ -739,23 +741,26 @@ function handleDerivMessage(data) {
     // Ignore stale updates from previous contracts
     if (poc.contract_id !== state.activeContractId) return;
 
-    broadcast({ type: "CONTRACT_UPDATE", contract: poc });
+    state.contractCanSell = poc.is_valid_to_sell === 1;
+    broadcast({ type: "CONTRACT_UPDATE", contract: poc, canSell: state.contractCanSell });
 
     const settled = poc.is_expired === 1 || poc.is_sold === 1
                  || poc.status === "won" || poc.status === "lost";
 
     if (settled && state.activeTrade) {
+      state.contractCanSell = false;
       clearTimeout(state.tradeTimeout);
       state.tradeTimeout = null;
       handleContractClose(poc);
       return;
     }
 
-    // Auto exit early when profit threshold is reached
-    if (!settled && state.autoExitOnProfit && state.activeTrade && poc.profit !== undefined) {
+    // Auto exit early when profit threshold is reached — only if resale is allowed
+    if (!settled && state.contractCanSell && state.autoExitOnProfit && state.activeTrade && poc.profit !== undefined) {
       const profitPct = (parseFloat(poc.profit) / state.stake) * 100;
       if (profitPct >= state.autoExitProfitPct) {
         log(`Auto exit: +${profitPct.toFixed(1)}% profit — locking in gains`, "ok");
+        state.contractCanSell = false;
         sendDeriv({ sell: state.activeContractId, price: 0, req_id: nextId() });
       }
     }
@@ -1067,7 +1072,9 @@ wss.on("connection", (browserWs) => {
 
       case "EXIT_TRADE":
         if (!state.activeContractId) { log("No active contract to exit", "warn"); break; }
+        if (!state.contractCanSell) { log("Contract cannot be sold early — resale not offered", "warn"); break; }
         log("Early exit — selling contract now", "warn");
+        state.contractCanSell = false;
         sendDeriv({ sell: state.activeContractId, price: 0, req_id: nextId() });
         break;
 

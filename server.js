@@ -700,7 +700,7 @@ function handleDerivMessage(data) {
       openTime: Date.now(),
       direction: state.activeTrade?.direction || "BUY",
       stake: state.stake,
-      entryPrice: parseFloat(contract.buy_price) || state.currentPrice,
+      entryPrice: state.currentPrice,
       status: "open",
     };
     state.activeTrade = trade;

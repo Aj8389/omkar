@@ -18,6 +18,7 @@ const ALLOWED_ORIGINS = [
   "https://omkar-frontend.onrender.com",
   "http://localhost:4200",
   "http://localhost:3000",
+  
 ];
 app.use((req, res, next) => {
   const origin = req.headers.origin;
